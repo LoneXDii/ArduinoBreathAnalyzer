@@ -13,8 +13,6 @@ void setup() {
 }
 
 void loop() {
-  delay(100);
-
   Serial.println(analogRead(2));
 
   handleError();
@@ -27,6 +25,8 @@ void loop() {
   int s1 = readAlcohol(1);
   
   printData(s0, s1);
+
+  delay(100);
 }
 
 int readAlcohol(int pin) {
@@ -63,11 +63,11 @@ void handleError(){
   bool s1_noPower = noPower(1);
 
   if(s0_noPower && s1_noPower){
-    err_code = "2_1";
+    err_code = "1_2";
     return;
   }
   else if (s0_noPower){
-    err_code = "0_1";
+    err_code = "1_0";
     return;
   }
   else if (s1_noPower){
@@ -83,11 +83,11 @@ void handleError(){
     return;
   }
   else if (s0_noInput){
-    err_code = "0_2";
+    err_code = "2_0";
     return;
   }
   else if (s1_noInput){
-    err_code = "1_2";
+    err_code = "2_1";
     return;
   }
 
