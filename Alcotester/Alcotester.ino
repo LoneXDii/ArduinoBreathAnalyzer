@@ -13,8 +13,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(analogRead(2));
-
   handleError();
 
   if (err_code != ""){
@@ -45,17 +43,51 @@ int readAlcohol(int pin) {
   return val;
 }
 
+double ConvertAlcohol(int s0_val, int s1_val) {
+  int medium = (s0_val + s1_val) / 2;
+  double promille = (double)medium * 0.00749805 - 1.06199;
+  Serial.println(promille);
+  return promille;
+}
+
 void printData(int s0_val, int s1_val) {
   display.clear();
   display.setScale(2);
 
-  display.setCursorXY(10, 20);
-  display.print("S0: ");
-  display.print(s0_val);
+  double alco = ConvertAlcohol(s0_val, s1_val);
 
-  display.setCursorXY(10, 45);
-  display.print("S1: ");
-  display.print(s1_val);
+  if(alco < 0){
+    alco = 0;
+  }
+
+  display.setCursorXY(10, 20);
+  display.print("Alco: ");
+  display.print(alco);
+
+  String alco_status = "";
+  String driving_status = "Don't drive a car!!!";
+  if(alco < 0.3){
+    alco_status = "You are sober";
+    driving_status = "You can drive a car";
+  }
+  else if (alco >= 0.3 && alco < 1){
+    alco_status = "Light intoxitation";
+  }
+  else if (alco >= 1 && alco < 2){
+    alco_status = "Medium intoxitation";
+  }
+  else if (alco >= 2 && alco < 3){
+    alco_status = "Hard intoxitation";
+  }
+  else{
+    alco_status = "You are dead";
+  }
+
+  display.setScale(1);
+  display.setCursorXY(10, 40);
+  display.print(alco_status);
+  display.setCursorXY(10, 50);
+  display.print(driving_status);
 }
 
 void handleError(){
@@ -91,6 +123,13 @@ void handleError(){
     return;
   }
 
+  bool err_values = errValues();
+
+  if(err_values){
+    err_code = "3";
+    return;
+  }
+
   err_code = "";
 }
 
@@ -102,6 +141,14 @@ bool noPower(int pin){
 bool noInput(int pin){
   int val = analogRead(pin);
   return val >= 1020 ? true : false;
+}
+
+bool errValues(){
+  int v0 = analogRead(0);
+  int v1 = analogRead(1);
+  int diff = v0 - v1;
+
+  return diff < -150 || diff > 150;
 }
 
 void printError(){
